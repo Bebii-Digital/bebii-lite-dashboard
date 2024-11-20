@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <h1>Welcome to the Dashboard</h1>
+  <p id="email"></p>
+  <button id="logout">Logout</button>
+  <script>
+    const socket = io();
+
+    socket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    fetch('/api/dashboard')
+      .then((res) => res.json())
+      .then((data) => {
+        document.getElementById('email').textContent = `Logged in as: ${data.email}`;
+      });
+
+    document.getElementById('logout').addEventListener('click', async () => {
+      const response = await axios.post('/api/logout');
+      if (response.data.success) {
+        window.location.href = '/index.html';
+      }
+    });
+  </script>
+</body>
+</html>

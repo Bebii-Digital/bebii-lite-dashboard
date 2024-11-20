@@ -8,14 +8,14 @@ import './cg.builder.js'
 
 const app = express();
 const prisma = new PrismaClient();
-
-// Create an HTTP server to support both Express and Socket.io
 const server = http.createServer(app);
-const io = new Server(server); // Inisialisasi Socket.io dengan menggunakan `new Server()`
+const io = new Server(server);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.set('view engine', 'ejs');
+
+// Serve static files
+app.use(express.static('public'));
 
 // Session middleware
 app.use(
@@ -31,88 +31,66 @@ function isAuthenticated(req, res, next) {
   if (req.session.userId) {
     next();
   } else {
-    res.redirect('/login');
+    res.redirect('/login.html');
   }
 }
 
 // Routes
-app.get('/', isAuthenticated, async (req, res) => {
+app.get('/api/dashboard', isAuthenticated, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.session.userId },
   });
-  res.render('dashboard', { email: user.email });
+  res.json({ email: user.email });
 });
 
-app.get('/login', (req, res) => {
-  res.render('login');
-});
-
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
-
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+  const user = await prisma.user.findUnique({ where: { email } });
 
   if (user && (await bcrypt.compare(password, user.password))) {
     req.session.userId = user.id;
-    res.redirect('/');
+    res.json({ success: true });
   } else {
-    res.send('Invalid email or password');
+    res.status(401).json({ success: false, message: 'Invalid email or password' });
   }
 });
 
-app.get('/register', (req, res) => {
-  res.render('register');
-});
-
-app.post('/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
   const { email, password } = req.body;
-
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
-    await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-      },
-    });
-    res.redirect('/login');
-  } catch (err) {
-    res.send('User already exists');
+    await prisma.user.create({ data: { email, password: hashedPassword } });
+    res.json({ success: true });
+  } catch {
+    res.status(400).json({ success: false, message: 'User already exists' });
   }
 });
 
-app.get('/logout', (req, res) => {
+app.post('/api/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error(err);
-      return res.send('Error logging out');
+      return res.status(500).json({ success: false });
     }
-    res.redirect('/login');
+    res.json({ success: true });
   });
 });
 
 // Socket.io logic
 io.on('connection', (socket) => {
   console.log('A user connected');
-  
-  // Send a welcome message to the client
-  socket.emit('message', 'Welcome to the chat!');
 
-  // Listen for a 'chat message' event and broadcast it
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);  // Broadcast message to all clients
+  socket.on('auth', (msg) => {
+    console.log(`Message received: ${msg}`);
   });
 
-  // Handle disconnect
   socket.on('disconnect', () => {
     console.log('A user disconnected');
   });
 });
 
-// Start server on port 3000
+// Start server
 server.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });
