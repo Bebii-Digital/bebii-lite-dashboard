@@ -1,18 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-</head>
-<body>
+<html>
+  <body>
     <h1>Login</h1>
-    <% if (error) { %>
-        <p style="color: red;"><%= error %></p>
-    <% } %>
-    <form action="/login" method="post">
-        <label>Username: <input type="text" name="username" required></label><br>
-        <label>Password: <input type="password" name="password" required></label><br>
-        <button type="submit">Login</button>
+    <form method="POST" action="/login">
+      <input type="text" name="email" placeholder="email" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Login</button>
     </form>
-</body>
+  </body>
 </html>
