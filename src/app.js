@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
 import http from 'http';
 import { Server } from 'socket.io'; // Gunakan `Server` untuk mengimpor Socket.io
-import './cg.builder.js'
+import '../cg.builder.js'
 
 const app = express();
 const prisma = new PrismaClient();
@@ -15,23 +15,29 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Serve static files
-app.use(express.static('public'));
+app.use(express.static('./src/public'));
 
 // Session middleware
-app.use(
+app.use(function (req, res, next) {
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PATCH, DELETE')
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, content-type, Authorization, Content-Type'
+  )
   session({
     secret: 'your_secret_key',
     resave: false,
     saveUninitialized: true,
   })
-);
+  next();
+})
 
 // Middleware to check login
 function isAuthenticated(req, res, next) {
   if (req.session.userId) {
     next();
   } else {
-    res.redirect('/login.html');
+    res.redirect('/');
   }
 }
 

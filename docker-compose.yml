@@ -31,7 +31,7 @@ services:
       - db
     command: >
       sh -c "
-        npx prisma db push --schema=./prisma/schema.prisma &&
+        npx run db:sync &&
         npm run start:prod
       "
 

@@ -14,12 +14,10 @@ RUN npm ci --omit=dev
 FROM node:lts-alpine3.19
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/config ./config
+COPY --from=builder /app/src ./src
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/views ./views
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
-RUN mkdir public
 
 # Run command on container starting
 CMD ["npm", "run", "start:prod"]

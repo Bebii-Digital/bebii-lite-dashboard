@@ -26,12 +26,12 @@ export default {
         rootDir: './',
         outDir: './dist',
         entries: [
-            'app.js'
+            'src/app.js'
             // Register another your entry file here. Example: 'main.js'
         ],
         staticDirs: [
-            'config',
-            'views',
+            'src/public',
+            'prisma',
             // Register your static directory here. Example: 'public'
         ],
         buildMode: 'production'

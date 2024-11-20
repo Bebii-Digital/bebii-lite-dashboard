@@ -1,4 +1,9 @@
 @server = http://localhost
 @port = 3000
 
-GET {{server}}:{{port}}/
+GET {{server}}:{{port}}/api/dashboard
+Content-Type: application/json
+Accept: application/json
+
+###
+GET http://localhost:3000/api/dashboard
