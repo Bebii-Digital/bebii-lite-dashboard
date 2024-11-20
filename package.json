@@ -8,8 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node app.js",
     "bun:dev": "nodemon app.js",
-    "pasang": "npm install express ejs express-session bcrypt mysql2 prisma @prisma/client",
-    "singkron-db":"npx prisma db push"
+    "pasang": "npm install express ejs express-session bcrypt mysql2 prisma @prisma/client socket.io",
+    "singkron-db": "npx prisma db push"
   },
   "author": "",
   "license": "ISC",

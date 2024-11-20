@@ -2,14 +2,21 @@ import express from 'express';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
+import http from 'http';
+import { Server } from 'socket.io'; // Gunakan `Server` untuk mengimpor Socket.io
 
 const app = express();
 const prisma = new PrismaClient();
+
+// Create an HTTP server to support both Express and Socket.io
+const server = http.createServer(app);
+const io = new Server(server); // Inisialisasi Socket.io dengan menggunakan `new Server()`
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.set('view engine', 'ejs');
 
+// Session middleware
 app.use(
   session({
     secret: 'your_secret_key',
@@ -86,6 +93,25 @@ app.get('/logout', (req, res) => {
   });
 });
 
-app.listen(3000, () => {
+// Socket.io logic
+io.on('connection', (socket) => {
+  console.log('A user connected');
+  
+  // Send a welcome message to the client
+  socket.emit('message', 'Welcome to the chat!');
+
+  // Listen for a 'chat message' event and broadcast it
+  socket.on('chat message', (msg) => {
+    io.emit('chat message', msg);  // Broadcast message to all clients
+  });
+
+  // Handle disconnect
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
+  });
+});
+
+// Start server on port 3000
+server.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });
