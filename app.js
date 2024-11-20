@@ -1,7 +1,7 @@
-const express = require('express');
-const session = require('express-session');
-const bcrypt = require('bcrypt');
-const mysql = require('mysql2');
+import express, { urlencoded } from 'express';
+import session from 'express-session';
+import { compare } from 'bcrypt';
+import { createConnection } from 'mysql2';
 
 // Config
 const config = {
@@ -10,7 +10,7 @@ const config = {
         host: 'localhost',
         user: 'root',
         password: 'root',
-        database: 'test'
+        database: 'stegopass_worker'
     },
     session: {
         secret: 'secret_key',
@@ -24,7 +24,7 @@ const config = {
 
 // Database setup
 const setupDatabase = () => {
-    const db = mysql.createConnection(config.db);
+    const db = createConnection(config.db);
     db.connect((err) => {
         if (err) throw new Error('Database connection failed');
         console.log('Database connected');
@@ -35,7 +35,7 @@ const setupDatabase = () => {
 // Middleware setup
 const setupMiddleware = (app) => {
     app.set('view engine', 'ejs');
-    app.use(express.urlencoded({ extended: true }));
+    app.use(urlencoded({ extended: true }));
     app.use(session({
         ...config.session,
         resave: false,
@@ -51,7 +51,7 @@ const authController = (db) => ({
         try {
             const [users] = await db.promise().query('SELECT * FROM users WHERE username = ?', [username]);
             
-            if (users.length && await bcrypt.compare(password, users[0].password)) {
+            if (users.length && await compare(password, users[0].password)) {
                 req.session.isLoggedIn = true;
                 req.session.username = username;
                 return res.redirect('/dashboard');

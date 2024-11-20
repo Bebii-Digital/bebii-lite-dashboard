@@ -1,0 +1,4 @@
+@server = http://localhost
+@port = 3000
+
+GET {{server}}:{{port}}/
