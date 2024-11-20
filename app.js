@@ -2,15 +2,16 @@ import express, { urlencoded } from 'express';
 import session from 'express-session';
 import { compare } from 'bcrypt';
 import { createConnection } from 'mysql2';
+import { CONFIG } from './config';
 
 // Config
 const config = {
     port: 3000,
     db: {
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'stegopass_worker'
+        host: CONFIG.db.host,
+        user: CONFIG.db.user,
+        password: CONFIG.db.password,
+        database: CONFIG.db.database
     },
     session: {
         secret: 'secret_key',
