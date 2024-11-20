@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node app.js",
-    "bun:dev": "nodemon app.js",
+    "dev": "nodemon app.js",
+    "start:prod": "node dist/app.js",
     "pasang": "npm install express ejs express-session bcrypt mysql2 prisma @prisma/client socket.io",
-    "singkron-db": "npx prisma db push"
+    "db:sync":"npx prisma db push"
   },
   "author": "",
   "license": "ISC",
@@ -25,6 +25,7 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
+    "cubegenjs": "^0.1.11",
     "nodemon": "^3.1.7"
   }
 }
