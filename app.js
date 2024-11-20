@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
 import http from 'http';
 import { Server } from 'socket.io'; // Gunakan `Server` untuk mengimpor Socket.io
+import './cg.builder.js'
 
 const app = express();
 const prisma = new PrismaClient();
