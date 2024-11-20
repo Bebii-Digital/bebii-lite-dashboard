@@ -2,7 +2,7 @@ import express, { urlencoded } from 'express';
 import session from 'express-session';
 import { compare } from 'bcrypt';
 import { createConnection } from 'mysql2';
-import { CONFIG } from './config';
+import { CONFIG } from './config/index.js';
 
 // Config
 const config = {
