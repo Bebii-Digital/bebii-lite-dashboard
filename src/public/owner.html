@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Page</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>Welcome, <span id="emailOwner"></span></h1>
+
+    <h1>Tambah Domain</h1>
+    <form id="registerDomain">
+      <input type="text" id="domain" name="domain" placeholder="Domain Web" required />
+      <button type="submit">Tambah</button>
+    </form>
+    <a href="/dashboard">Dashboard</a>
+
+    <table id="dataTable" border="1">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Domain</th>
+            <th>Tanggal Gabung</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+    <script>
+        // Ambil email_owner dari URL
+        const urlParams = window.location.pathname.split('/');
+        const emailOwner = urlParams[urlParams.length - 1];  // email_owner ada di akhir URL
+        document.getElementById('emailOwner').textContent = emailOwner;
+    </script>
+    <script>
+        const socket = io();
+    
+        socket.on('connect', () => {
+          console.log('Connected to server');
+        });
+    
+        socket.on('dataWeb', (data) => {
+        console.log(data);
+          
+          const tableBody = document.querySelector('#dataTable tbody');
+          tableBody.innerHTML = ''; // Clear table before inserting new data
+    
+          // Looping data dan menambahkannya ke tabel
+          data.forEach((item, index) => {
+            const row = document.createElement('tr'); // Membuat row baru
+    
+            // Membuat cell untuk nomor urut (No)
+            const noCell = document.createElement('td');
+            noCell.textContent = index + 1; // Nomor urut berdasarkan index
+            row.appendChild(noCell);
+    
+            // Membuat cell untuk web
+            const webCell = document.createElement('td');
+    
+            // Membuat elemen <a> untuk web
+            const webLink = document.createElement('a');
+            webLink.textContent = item.url_web; // Teks yang ditampilkan di hyperlink
+            webLink.href = ``; 
+    
+            // Menambahkan elemen <a> ke dalam cell
+            webCell.appendChild(webLink);
+    
+            // Menambahkan cell ke row
+            row.appendChild(webCell);
+    
+            // Membuat cell untuk tanggal daftar (createdAt)
+            const createdAtCell = document.createElement('td');
+            const createdAtDate = new Date(item.createdAt); // Mengonversi ke format tanggal
+            createdAtCell.textContent = createdAtDate.toLocaleDateString('id-ID'); // Format tanggal lokal
+            row.appendChild(createdAtCell);
+    
+            const hapusCell = document.createElement('td');
+            // Menghindari undefined atau null pada item.id
+            // Membuat elemen <a> untuk tombol hapus
+            const hapusLink = document.createElement('a');
+            hapusLink.href = ''; // Tambahkan URL tujuan jika diperlukan
+            hapusLink.textContent = 'Hapus';
+            hapusLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                const confirmed = confirm(`Apakah Anda yakin ingin menghapus Domain "${item.url_web}"?`);
+                if (confirmed) {
+    
+                    fetch(`/api/web/${item.id}/${item.url_web}`, { method: 'DELETE' })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log(`Domain ${item.url_web} berhasil dihapus.`);
+                            } else {
+                                console.error(`Gagal menghapus Domain ${item.url_web}.`);
+                            }
+                        })
+                        .catch(err => console.error('Terjadi kesalahan:', err));
+                }
+            });
+            // Menambahkan link hapus ke dalam cell
+            hapusCell.appendChild(hapusLink);
+            // Menambahkan cell ke dalam row
+            row.appendChild(hapusCell);
+    
+            // Menambahkan row ke dalam tabel
+            tableBody.appendChild(row); // Menambahkan row ke tbody
+          });
+        });
+
+        document.getElementById('registerDomain').addEventListener('submit', async (event) => {
+            event.preventDefault(); // Mencegah form submit secara default
+
+            const domain = document.getElementById('domain').value; // Ambil nilai dari input email
+
+            try {
+                const urlParams = window.location.pathname.split('/');
+                const email = urlParams[urlParams.length - 1];
+
+                const response = await fetch('/api/register-domain', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Menentukan format data yang dikirim adalah JSON
+                },
+                body: JSON.stringify({ email, domain }), // Mengirim data dalam format JSON
+                });
+
+                const result = await response.json(); // Parsing response dari server
+
+                if (response.ok) {
+                alert('Owner berhasil ditambahkan!');
+                document.getElementById('registerOwnerForm').reset(); // Mengosongkan form setelah berhasil
+                } else {
+                alert(result.message || 'Gagal menambahkan owner.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat menghubungi server.');
+            }
+            });
+
+    </script>
+</body>
+</html>

@@ -15,7 +15,6 @@
     <input type="password" id="password" name="password" required>
     <button type="submit">Login</button>
   </form>
-  <a href="/register.html">Register</a>
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -25,7 +24,7 @@
       try {
         const response = await axios.post('/api/login', { email, password });
         if (response.data.success) {
-          window.location.href = '/dashboard.html';
+          window.location.href = '/dashboard';
         }
       } catch {
         alert('Invalid email or password');

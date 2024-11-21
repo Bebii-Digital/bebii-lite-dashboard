@@ -14,14 +14,24 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  email String @unique
-  password String
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(255) // Menentukan panjang maksimal untuk email
+  password  String   @db.VarChar(255) // Menentukan panjang maksimal untuk password (disesuaikan dengan panjang hash)
+  role      String   @db.VarChar(50) // Menentukan panjang maksimal untuk role
+  createdAt DateTime @default(now())
 }
 
 model Website {
-  id       Int     @id @default(autoincrement())
-  email String
-  url_web String
+  id        Int      @id @default(autoincrement())
+  email     String   @db.VarChar(255) // Menentukan panjang maksimal untuk email
+  url_web   String   @db.VarChar(255) // Menentukan panjang maksimal untuk URL
+  createdAt DateTime @default(now())
+}
+
+model traffik_user {
+  id         Int      @id @default(autoincrement())
+  url_web    String   @db.VarChar(255) // Menentukan panjang maksimal untuk URL
+  user_agent String   @db.VarChar(512) // Menentukan panjang maksimal untuk user_agent
+  createdAt  DateTime @default(now())
 }
 
