@@ -15,9 +15,7 @@ services:
   # API Service
   bebii_dash:
     container_name: bebii_dash
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: bebii-dash:latest
     restart: always
     volumes:
       - ./public:/app/public
@@ -31,7 +29,7 @@ services:
       - db
     command: >
       sh -c "
-        npx run db:sync &&
+        npm run db:sync &&
         npm run start:prod
       "
 
