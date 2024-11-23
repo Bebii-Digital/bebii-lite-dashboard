@@ -5,16 +5,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    *, *::before, *::after, body, html {
+      margin: 0;
+      padding: 0;
+    }
+    .input-custom {
+      text-indent: 5px;
+      font-size: 18px;
+      padding: 5px 0px;
+      width: 100%;
+      outline: none;
+      background: #FFFFFF;
+      color: #000000;
+      border: 1px solid #C4D1EB;
+      border-radius: 5px;
+      box-shadow: 3px 3px 2px 0px #E2E2E2;
+      transition: .3s ease;
+    }
+
+  </style>
 </head>
-<body>
-  <h1>Login</h1>
-  <form id="loginForm">
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required>
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required>
-    <button type="submit">Login</button>
-  </form>
+<body style="display:flex; width:100%;justify-content: center; align-items: center;overflow: hidden;min-height: 100vh;">
+    <form id="loginForm" style="
+      background: rgba( 255, 255, 255, 0.25 );
+      box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+      backdrop-filter: blur( 4px );
+      -webkit-backdrop-filter: blur( 4px );
+      border-radius: 10px;
+      border: 1px solid rgba( 255, 255, 255, 0.18 );
+      padding: 20px 45px;
+      ">
+      <h3 style="text-align:center;">Login</h3>
+      <div style="display: flex; flex-direction: column;">
+        <label for="email">Email</label>
+        <input class="input-custom" type="email" id="email" name="email" required>
+      </div>
+      <br>
+      <div style="display: flex; flex-direction: column;">
+        <label for="password">Password:</label>
+        <input class="input-custom" type="password" id="password" name="password" required>
+      </div>
+      <br>
+      <button style="
+        display: flex;
+        border-radius: 5px;
+        box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 8px;
+        padding: 5px 10px;
+        justify-content: center;
+        align-items: center;
+        cursor:pointer;
+      " type="submit">Login</button>
+    </form>
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
