@@ -16,7 +16,8 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique @db.VarChar(255) // Menentukan panjang maksimal untuk email
-  password  String   @db.VarChar(255) // Menentukan panjang maksimal untuk password (disesuaikan dengan panjang hash)
+  password  String?   @db.VarChar(255) // Menentukan panjang maksimal untuk password (disesuaikan dengan panjang hash)
+  kode      String?   @db.VarChar(50) 
   role      String   @db.VarChar(50) // Menentukan panjang maksimal untuk role
   createdAt DateTime @default(now())
 }
@@ -34,4 +35,3 @@ model traffik_user {
   user_agent String   @db.VarChar(512) // Menentukan panjang maksimal untuk user_agent
   createdAt  DateTime @default(now())
 }
-

@@ -28,6 +28,7 @@
         <tbody></tbody>
       </table>
 
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.6/dayjs.min.js"></script>
     <script>
         // Ambil email_owner dari URL
         const urlParams = window.location.pathname.split('/');
@@ -48,63 +49,70 @@
           tableBody.innerHTML = ''; // Clear table before inserting new data
     
           // Looping data dan menambahkannya ke tabel
+          let i = 0;
           data.forEach((item, index) => {
-            const row = document.createElement('tr'); // Membuat row baru
+
+            if(item.email == emailOwner){
+              i += 1;
+
+              const row = document.createElement('tr'); // Membuat row baru
     
-            // Membuat cell untuk nomor urut (No)
-            const noCell = document.createElement('td');
-            noCell.textContent = index + 1; // Nomor urut berdasarkan index
-            row.appendChild(noCell);
-    
-            // Membuat cell untuk web
-            const webCell = document.createElement('td');
-    
-            // Membuat elemen <a> untuk web
-            const webLink = document.createElement('a');
-            webLink.textContent = item.url_web; // Teks yang ditampilkan di hyperlink
-            webLink.href = ``; 
-    
-            // Menambahkan elemen <a> ke dalam cell
-            webCell.appendChild(webLink);
-    
-            // Menambahkan cell ke row
-            row.appendChild(webCell);
-    
-            // Membuat cell untuk tanggal daftar (createdAt)
-            const createdAtCell = document.createElement('td');
-            const createdAtDate = new Date(item.createdAt); // Mengonversi ke format tanggal
-            createdAtCell.textContent = createdAtDate.toLocaleDateString('id-ID'); // Format tanggal lokal
-            row.appendChild(createdAtCell);
-    
-            const hapusCell = document.createElement('td');
-            // Menghindari undefined atau null pada item.id
-            // Membuat elemen <a> untuk tombol hapus
-            const hapusLink = document.createElement('a');
-            hapusLink.href = ''; // Tambahkan URL tujuan jika diperlukan
-            hapusLink.textContent = 'Hapus';
-            hapusLink.addEventListener('click', (event) => {
-                event.preventDefault();
-                const confirmed = confirm(`Apakah Anda yakin ingin menghapus Domain "${item.url_web}"?`);
-                if (confirmed) {
-    
-                    fetch(`/api/web/${item.id}/${item.url_web}`, { method: 'DELETE' })
-                        .then(response => {
-                            if (response.ok) {
-                                console.log(`Domain ${item.url_web} berhasil dihapus.`);
-                            } else {
-                                console.error(`Gagal menghapus Domain ${item.url_web}.`);
-                            }
-                        })
-                        .catch(err => console.error('Terjadi kesalahan:', err));
-                }
-            });
-            // Menambahkan link hapus ke dalam cell
-            hapusCell.appendChild(hapusLink);
-            // Menambahkan cell ke dalam row
-            row.appendChild(hapusCell);
-    
-            // Menambahkan row ke dalam tabel
-            tableBody.appendChild(row); // Menambahkan row ke tbody
+              // Membuat cell untuk nomor urut (No)
+              const noCell = document.createElement('td');
+              noCell.textContent = i; // Nomor urut berdasarkan index
+              row.appendChild(noCell);
+      
+              // Membuat cell untuk web
+              const webCell = document.createElement('td');
+      
+              // Membuat elemen <a> untuk web
+              const webLink = document.createElement('a');
+              webLink.textContent = item.url_web; // Teks yang ditampilkan di hyperlink
+              webLink.href = ``; 
+      
+              // Menambahkan elemen <a> ke dalam cell
+              webCell.appendChild(webLink);
+      
+              // Menambahkan cell ke row
+              row.appendChild(webCell);
+      
+              // Membuat cell untuk tanggal daftar (createdAt)
+              const createdAtCell = document.createElement('td');
+              const createdAtDate = dayjs(item.createdAt); // Menggunakan dayjs untuk memparsing tanggal
+              createdAtCell.textContent = createdAtDate.format('DD/MM/YYYY HH:mm'); // Format tanggal
+              row.appendChild(createdAtCell);
+      
+              const hapusCell = document.createElement('td');
+              // Menghindari undefined atau null pada item.id
+              // Membuat elemen <a> untuk tombol hapus
+              const hapusLink = document.createElement('a');
+              hapusLink.href = ''; // Tambahkan URL tujuan jika diperlukan
+              hapusLink.textContent = 'Hapus';
+              hapusLink.addEventListener('click', (event) => {
+                  event.preventDefault();
+                  const confirmed = confirm(`Apakah Anda yakin ingin menghapus Domain "${item.url_web}"?`);
+                  if (confirmed) {
+      
+                      fetch(`/api/web/${item.id}/${item.url_web}`, { method: 'DELETE' })
+                          .then(response => {
+                              if (response.ok) {
+                                  console.log(`Domain ${item.url_web} berhasil dihapus.`);
+                              } else {
+                                  console.error(`Gagal menghapus Domain ${item.url_web}.`);
+                              }
+                          })
+                          .catch(err => console.error('Terjadi kesalahan:', err));
+                  }
+              });
+              // Menambahkan link hapus ke dalam cell
+              hapusCell.appendChild(hapusLink);
+              // Menambahkan cell ke dalam row
+              row.appendChild(hapusCell);
+      
+              // Menambahkan row ke dalam tabel
+              tableBody.appendChild(row); // Menambahkan row ke tbody
+            }
+
           });
         });
 
@@ -129,13 +137,12 @@
 
                 if (response.ok) {
                 alert('Owner berhasil ditambahkan!');
-                document.getElementById('registerOwnerForm').reset(); // Mengosongkan form setelah berhasil
+                document.getElementById('registerDomain').reset(); // Mengosongkan form setelah berhasil
                 } else {
                 alert(result.message || 'Gagal menambahkan owner.');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Terjadi kesalahan saat menghubungi server.');
             }
             });
 

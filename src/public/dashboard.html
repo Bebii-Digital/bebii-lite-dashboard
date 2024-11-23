@@ -11,7 +11,24 @@
   <h1>Welcome to the Dashboard</h1>
   <p id="email"></p>
 
+  <h3>Owner</h3>
   <table id="dataTable" border="1">
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>Email</th>
+        <th>kode lisensi</th>
+        <th>Tanggal Gabung</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <a href="/register-owner.html">Register Owner</a>
+
+  <h3>Admin</h3>
+  <table id="dataTableAdmin" border="1">
     <thead>
       <tr>
         <th>No.</th>
@@ -23,7 +40,6 @@
     <tbody></tbody>
   </table>
 
-  <a href="/register-owner.html">Register Owner</a>
   <a href="/register-admin.html">Register Admin</a>
   <button id="logout">Logout</button>
   <script>
@@ -67,6 +83,11 @@
         // Menambahkan cell ke row
         row.appendChild(emailCell);
 
+        // Membuat cell untuk nomor urut (No)
+        const kdCell = document.createElement('td');
+        kdCell.textContent = item.kode; // Nomor urut berdasarkan index
+        row.appendChild(kdCell);
+
         // Membuat cell untuk tanggal daftar (createdAt)
         const createdAtCell = document.createElement('td');
         const createdAtDate = new Date(item.createdAt); // Mengonversi ke format tanggal
@@ -90,6 +111,72 @@
                             console.log(`Owner ${item.email} berhasil dihapus.`);
                         } else {
                             console.error(`Gagal menghapus owner ${item.email}.`);
+                        }
+                    })
+                    .catch(err => console.error('Terjadi kesalahan:', err));
+            }
+        });
+        // Menambahkan link hapus ke dalam cell
+        hapusCell.appendChild(hapusLink);
+        // Menambahkan cell ke dalam row
+        row.appendChild(hapusCell);
+
+        // Menambahkan row ke dalam tabel
+        tableBody.appendChild(row); // Menambahkan row ke tbody
+      });
+    });
+
+    socket.on('dataAdmin', (data) => {
+      
+      const tableBody = document.querySelector('#dataTableAdmin tbody');
+      tableBody.innerHTML = ''; // Clear table before inserting new data
+
+      // Looping data dan menambahkannya ke tabel
+      data.forEach((item, index) => {
+        const row = document.createElement('tr'); // Membuat row baru
+
+        // Membuat cell untuk nomor urut (No)
+        const noCell = document.createElement('td');
+        noCell.textContent = index + 1; // Nomor urut berdasarkan index
+        row.appendChild(noCell);
+
+        // Membuat cell untuk email
+        const emailCell = document.createElement('td');
+
+        // Membuat elemen <a> untuk email
+        const emailLink = document.createElement('a');
+        emailLink.textContent = item.email || 'N/A'; // Teks yang ditampilkan di hyperlink
+        emailLink.href = ``; 
+
+        // Menambahkan elemen <a> ke dalam cell
+        emailCell.appendChild(emailLink);
+
+        // Menambahkan cell ke row
+        row.appendChild(emailCell);
+
+        // Membuat cell untuk tanggal daftar (createdAt)
+        const createdAtCell = document.createElement('td');
+        const createdAtDate = new Date(item.createdAt); // Mengonversi ke format tanggal
+        createdAtCell.textContent = createdAtDate.toLocaleDateString('id-ID'); // Format tanggal lokal
+        row.appendChild(createdAtCell);
+
+        const hapusCell = document.createElement('td');
+        // Menghindari undefined atau null pada item.id
+        // Membuat elemen <a> untuk tombol hapus
+        const hapusLink = document.createElement('a');
+        hapusLink.href = ''; // Tambahkan URL tujuan jika diperlukan
+        hapusLink.textContent = 'Hapus';
+        hapusLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            const confirmed = confirm(`Apakah Anda yakin ingin menghapus owner "${item.email}"?`);
+            if (confirmed) {
+
+                fetch(`/api/admins/${item.id}/${item.email}`, { method: 'DELETE' })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log(`Owner ${item.email} berhasil dihapus.`);
+                        } else {
+                            console.error(`Gagal menghapus admin ${item.email}.`);
                         }
                     })
                     .catch(err => console.error('Terjadi kesalahan:', err));

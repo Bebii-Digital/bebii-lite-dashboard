@@ -2,7 +2,7 @@ import express from 'express';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
-import http from 'http';
+import http from 'https';
 import { Server } from 'socket.io';
 
 import { fileURLToPath } from 'url';
@@ -14,12 +14,15 @@ const server = http.createServer(app);
 
 let jumlahUser = 0;
 let dataOwner = [];
+let dataAdmin = [];
 let dataWeb = [];
 
 // Socket.IO setup
 const io = new Server(server, {
   cors: {
     origin: '*',
+    transports: ['websocket'],
+    methods: ["GET", "POST"]
   },
 });
 
@@ -55,14 +58,19 @@ function isAuthenticated(req, res, next) {
 async function ambilDataOwner() {
   try {
     // Mengambil data dari database menggunakan Prisma
-    const users = await prisma.user.findMany({
-      where: {
-          role: 'owner' // Filter untuk hanya mengambil data dengan role 'owner'
-      },
-      orderBy: {
-          id: 'desc', // Mengurutkan berdasarkan ID secara menurun
-      },
-    });
+    const users = await prisma.$queryRaw`SELECT * FROM User WHERE role = 'owner' ORDER BY id`;
+    // Menggunakan await untuk menunggu hasilnya
+    return users;  // Mengembalikan data yang didapat
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return [];  // Mengembalikan array kosong jika terjadi error
+  }
+}
+
+async function ambilDataAdmin() {
+  try {
+    // Mengambil data dari database menggunakan Prisma
+    const users = await prisma.$queryRaw`SELECT id,email,createdAt FROM User WHERE role = 'admin' ORDER BY id`;
     // Menggunakan await untuk menunggu hasilnya
     return users;  // Mengembalikan data yang didapat
   } catch (error) {
@@ -106,10 +114,12 @@ app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await prisma.user.findFirst({ where: { email } });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      req.session.userId = user.id;
+    const user = await prisma.$queryRaw`SELECT * FROM User WHERE email = ${email} AND role = 'admin'`;
+    let dat_user = user[0];
+
+    if (dat_user && (await bcrypt.compare(password, dat_user.password))) {
+      req.session.userId = dat_user.id;
       res.json({ success: true });
     } else {
       res.status(401).json({ success: false, message: 'Invalid email or password' });
@@ -130,13 +140,16 @@ app.post('/api/register-owner', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await prisma.user.create({ data: { email, password: hashedPassword, role: 'owner' } });
+    const role = 'owner';
+    const result = await prisma.$queryRaw`
+      INSERT INTO \`User\` (\`email\`, \`kode\`, \`role\`) 
+      VALUES (${email}, ${password}, ${role})
+    `;
+    //await prisma.User.create({ data: { email: email, password: hashedPassword, role: 'owner' } });
 
     dataOwner = await ambilDataOwner();
-    io.emit('dataOwner', dataOwner);
-
-    res.json({ success: true });
+    io.emit('dataOwner', dataOwner)
+    res.redirect('/dashboard');
   } catch (err) {
     console.error(err);
     res.status(400).json({ success: false, message: 'User already exists' });
@@ -160,6 +173,26 @@ app.delete('/api/owners/:id/:email', async (req, res) => {
       res.json({ message: `Owner dengan ID ${id} berhasil dihapus.`, owner });
   } catch (error) {
       res.status(500).json({ error: 'Gagal menghapus owner. Pastikan ID valid.' });
+  }
+});
+
+app.delete('/api/admins/:id/:email', async (req, res) => {
+  const { id, email } = req.params;
+
+  try {
+      const admin = await prisma.User.delete({
+          where: { id: parseInt(id) },
+      });
+
+      dataAdmin = await ambilDataAdmin();
+      io.emit('dataAdmin', dataAdmin);
+
+      io.emit('logout', email);
+      console.log(email);
+
+      res.json({ message: `Admin dengan ID ${id} berhasil dihapus.`, admin });
+  } catch (error) {
+      res.status(500).json({ error: 'Gagal menghapus admin. Pastikan ID valid.' });
   }
 });
 
@@ -202,12 +235,16 @@ app.post('/api/register-admin', async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    await prisma.user.create({ data: { email, password: hashedPassword, role: 'admin' } });
+    const role = 'admin';
+    const result = await prisma.$queryRaw`
+      INSERT INTO \`User\` (\`email\`, \`password\`, \`role\`) 
+      VALUES (${email}, ${hashedPassword}, ${role})
+    `;
 
-    dataOwner = await ambilDataOwner();
-    io.emit('dataOwner', dataOwner);
+    dataAdmin = await ambilDataAdmin();
+    io.emit('dataAdmin', dataAdmin);
 
-    res.json({ success: true });
+    res.redirect('/dashboard');
   } catch (err) {
     console.error(err);
     res.status(400).json({ success: false, message: 'User already exists' });
@@ -226,7 +263,7 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/dashboard', isAuthenticated, async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.User.findUnique({
       where: { id: req.session.userId },
     });
 
@@ -242,6 +279,7 @@ app.get('/api/dashboard', isAuthenticated, async (req, res) => {
 });
 
 dataOwner = await ambilDataOwner();
+dataAdmin = await ambilDataAdmin();
 dataWeb = await ambilDataWeb();
 
 // Socket.io logic
@@ -255,19 +293,26 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('add-user-trafik', async (data) => {
+    let domain = data.domain;
+    let ua = data.user_agent;
+
+    const result = await prisma.$queryRaw`
+      INSERT INTO \`traffik_user\` (\`url_web\`, \`user_agent\`) 
+      VALUES (${domain}, ${ua})
+    `;
+  })
+
   socket.on('auth', async (data, cb) => {
     let domain = data.domain;
     let email = data.email;
     let pass = data.pass;
 
-    const user = await prisma.user.findFirst({
-      where: {
-        AND: [
-          { email: email },
-          { role: 'owner' }
-        ]
-      }
-    });
+    const user = await prisma.$queryRaw`
+      SELECT * FROM User
+      WHERE email = ${email} AND role = 'owner'
+    `;
+    let dat_user = user[0];
 
     const web = await prisma.Website.findFirst({
       where: {
@@ -278,9 +323,11 @@ io.on('connection', (socket) => {
       }
     });
 
-    if (user && (await bcrypt.compare(pass, user.password)) && web) {
+    if (dat_user && (pass == dat_user.kode) && web) {
+      console.log(domain + " Diterima");
       cb('ok');
     } else {
+      console.log(domain + " Ditolak");
       cb('gagal');
     }
   });
@@ -290,7 +337,10 @@ io.on('connection', (socket) => {
     let email = data.email;
     let pass = data.pass;
 
-    const user = await prisma.user.findFirst({ where: { email } });
+    const user = await prisma.$queryRaw`
+      SELECT * FROM User WHERE email = ${email}
+    `;
+    let dat_user = user[0];
 
     const web = await prisma.Website.findFirst({
       where: {
@@ -301,7 +351,7 @@ io.on('connection', (socket) => {
       }
     });
 
-    if (user && (await bcrypt.compare(pass, user.password)) && web) {
+    if (dat_user && pass == dat_user.kode && web) {
       cb('ok');
     } else {
       cb('gagal');
@@ -309,6 +359,7 @@ io.on('connection', (socket) => {
   });
 
   socket.emit('dataOwner', dataOwner);
+  socket.emit('dataAdmin', dataAdmin);
   socket.emit('dataWeb', dataWeb);
 
   socket.on('disconnect', () => {
