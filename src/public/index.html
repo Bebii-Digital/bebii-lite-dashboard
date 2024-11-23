@@ -10,7 +10,7 @@
       margin: 0;
       padding: 0;
     }
-    .input-custom {
+    .bebii-input {
       text-indent: 5px;
       font-size: 18px;
       padding: 5px 0px;
@@ -23,7 +23,15 @@
       box-shadow: 3px 3px 2px 0px #E2E2E2;
       transition: .3s ease;
     }
-
+    .bebii-btn {
+      display: flex;
+      border-radius: 5px;
+      box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 8px;
+      padding: 5px 10px;
+      justify-content: center;
+      align-items: center;
+      cursor:pointer;
+    }
   </style>
 </head>
 <body style="display:flex; width:100%;justify-content: center; align-items: center;overflow: hidden;min-height: 100vh;">
@@ -39,23 +47,15 @@
       <h3 style="text-align:center;">Login</h3>
       <div style="display: flex; flex-direction: column;">
         <label for="email">Email</label>
-        <input class="input-custom" type="email" id="email" name="email" required>
+        <input class="bebii-input" type="email" id="email" name="email" required>
       </div>
       <br>
       <div style="display: flex; flex-direction: column;">
         <label for="password">Password:</label>
-        <input class="input-custom" type="password" id="password" name="password" required>
+        <input class="bebii-input" type="password" id="password" name="password" required>
       </div>
       <br>
-      <button style="
-        display: flex;
-        border-radius: 5px;
-        box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 8px;
-        padding: 5px 10px;
-        justify-content: center;
-        align-items: center;
-        cursor:pointer;
-      " type="submit">Login</button>
+      <button class="bebii-btn" type="submit">Login</button>
     </form>
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
