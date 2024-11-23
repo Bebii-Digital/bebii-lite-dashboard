@@ -5,18 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owner Page</title>
     <script src="/socket.io/socket.io.js"></script>
+    <style>
+      table.greyGridTable {
+        border: 2px solid #FFFFFF;
+        width: 100%;
+        text-align: center;
+        border-collapse: collapse;
+      }
+      table.greyGridTable td, table.greyGridTable th {
+        border: 1px solid #FFFFFF;
+        padding: 3px 4px;
+      }
+      table.greyGridTable tbody td {
+        font-size: 13px;
+      }
+      table.greyGridTable td:nth-child(even) {
+        background: #EBEBEB;
+      }
+      table.greyGridTable thead {
+        background: #FFFFFF;
+        border-bottom: 4px solid #333333;
+      }
+      table.greyGridTable thead th {
+        font-size: 15px;
+        font-weight: bold;
+        color: #333333;
+        text-align: center;
+        border-left: 2px solid #333333;
+      }
+      table.greyGridTable thead th:first-child {
+        border-left: none;
+      }
+  
+      table.greyGridTable tfoot {
+        font-size: 14px;
+        font-weight: bold;
+        color: #333333;
+        border-top: 4px solid #333333;
+      }
+      table.greyGridTable tfoot td {
+        font-size: 14px;
+      }
+      .bebii-input {
+        text-indent: 5px;
+        font-size: 18px;
+        padding: 5px 0px;
+        width: 100%;
+        outline: none;
+        background: #FFFFFF;
+        color: #000000;
+        border: 1px solid #C4D1EB;
+        border-radius: 5px;
+        box-shadow: 3px 3px 2px 0px #E2E2E2;
+        transition: .3s ease;
+      }
+      .bebii-btn {
+        display: flex;
+        border-radius: 5px;
+        box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 8px;
+        justify-content: center;
+        align-items: center;
+        cursor:pointer;
+        color: black;
+        text-decoration: none;
+        box-sizing: border-box;
+        background-color: buttonface;
+        padding-block: 10px;
+        padding-inline: 10px;
+        border-width: 2px;
+        border-style: outset;
+        border-color: buttonborder;
+        border-image: initial;
+      }
+    </style>
 </head>
 <body>
-    <h1>Welcome, <span id="emailOwner"></span></h1>
+    <section style="width: 100%;display: flex;justify-content: space-between;align-items: center;">
+      <div>
+        <h1>Detail of User Account</h1>
+        <span>Current account : </span><span id="emailOwner"></span>
+      </div>
+      <div>
+        <a class="bebii-btn" href="/dashboard">Dashboard</a>
+      </div>
+    </section>
+    
+    <section style="width: 100%;display: flex;align-items: center;margin: 10px 0;">
+      <form id="registerDomain" style="display: flex;gap: 15px;">
+        <input class="bebii-input" type="text" id="domain" name="domain" placeholder="Domain Web" required />
+        <button class="bebii-btn" type="submit">Tambah</button>
+      </form>
+    </section>
 
-    <h1>Tambah Domain</h1>
-    <form id="registerDomain">
-      <input type="text" id="domain" name="domain" placeholder="Domain Web" required />
-      <button type="submit">Tambah</button>
-    </form>
-    <a href="/dashboard">Dashboard</a>
-
-    <table id="dataTable" border="1">
+    <div style="width: 100%;overflow-x: scroll;">
+      <table class="greyGridTable" id="dataTable" border="1">
         <thead>
           <tr>
             <th>No.</th>
@@ -27,6 +109,7 @@
         </thead>
         <tbody></tbody>
       </table>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.6/dayjs.min.js"></script>
     <script>
