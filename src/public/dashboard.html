@@ -83,7 +83,7 @@
   </section>
 
   <section class="bebii-container">
-    <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;">
+    <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;margin-top: 20px;">
       <div style="display: flex;width: 100%;justify-content: space-between;align-items: center;">
         <h3>User</h3>
         <a id="reguser" class="bebii-btn" href="/register-owner.html">Register User</a>
@@ -105,7 +105,7 @@
       </div>
     </div>
   
-    <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;" id="kontain-adm">
+    <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;margin-top: 20px;" id="kontain-adm">
       <div style="display: flex;width: 100%;justify-content: space-between;align-items: center;">
         <h3>Admin</h3>
         <a class="bebii-btn" href="/register-admin.html">Register Admin</a>
@@ -116,6 +116,29 @@
             <tr>
               <th>No.</th>
               <th>Email</th>
+              <th>Tanggal Gabung</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;margin-top: 20px;">
+      <div style="display: flex;width: 100%;justify-content: space-between;align-items: center;">
+        <h3>Domain</h3>
+        <form id="registerDomain" style="display: flex;gap: 15px;">
+          <input class="bebii-input" type="text" id="domain" name="domain" placeholder="Domain Web" required />
+          <button class="bebii-btn" type="submit">Tambah</button>
+        </form>
+      </div>
+      <div style="overflow-x: scroll;">
+        <table class="greyGridTable" id="dataTable" border="1">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Domain</th>
               <th>Tanggal Gabung</th>
               <th>Aksi</th>
             </tr>
