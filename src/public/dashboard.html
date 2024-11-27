@@ -77,6 +77,9 @@
       <p id="email"></p>
     </div>
     <div>
+      <a class="bebii-btn" href="/ganti_kode">Ganti Kode</a>
+    </div>
+    <div>
       <button class="bebii-btn" id="logout">Logout</button>
     </div>
   </section>
@@ -85,7 +88,7 @@
     <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;">
       <div style="display: flex;width: 100%;justify-content: space-between;align-items: center;">
         <h3>User</h3>
-        <a class="bebii-btn" href="/register-owner.html">Register User</a>
+        <a id="reguser" class="bebii-btn" href="/register-owner.html">Register User</a>
       </div>
       <div style="overflow-x: scroll;">
         <table class="greyGridTable" id="dataTable" border="1">
@@ -99,11 +102,12 @@
             </tr>
           </thead>
           <tbody></tbody>
+          <tfoot><b>*Note: wajib menambahkan domain dahulu, dengan cara klik email anda lalu tambahkan domain tanpa https / www. contoh: namadomain.com</b></tfoot>
         </table>
       </div>
     </div>
   
-    <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;">
+    <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;" id="kontain-adm">
       <div style="display: flex;width: 100%;justify-content: space-between;align-items: center;">
         <h3>Admin</h3>
         <a class="bebii-btn" href="/register-admin.html">Register Admin</a>
@@ -131,10 +135,20 @@
       console.log('Connected to server');
     });
 
+    let r = '';
+
     fetch('/api/dashboard')
       .then((res) => res.json())
       .then((data) => {
         document.getElementById('email').textContent = `Logged in as: ${data.email}`;
+        r = data.role;
+        email = data.email;
+        if(r == 'owner'){
+          const kontainAdm = document.getElementById("kontain-adm");
+          kontainAdm.style.display = "none";
+          const kontainreg = document.getElementById("reguser");
+          kontainreg.style.display = "none";
+        }
       });
 
     socket.on('dataOwner', (data) => {
@@ -144,67 +158,133 @@
 
       // Looping data dan menambahkannya ke tabel
       data.forEach((item, index) => {
-        const row = document.createElement('tr'); // Membuat row baru
+        if(r == 'owner'){
+          if(email == item.email){
+            const row = document.createElement('tr'); // Membuat row baru
 
-        // Membuat cell untuk nomor urut (No)
-        const noCell = document.createElement('td');
-        noCell.textContent = index + 1; // Nomor urut berdasarkan index
-        row.appendChild(noCell);
+            // Membuat cell untuk nomor urut (No)
+            const noCell = document.createElement('td');
+            noCell.textContent = index + 1; // Nomor urut berdasarkan index
+            row.appendChild(noCell);
 
-        // Membuat cell untuk email
-        const emailCell = document.createElement('td');
+            // Membuat cell untuk email
+            const emailCell = document.createElement('td');
 
-        // Membuat elemen <a> untuk email
-        const emailLink = document.createElement('a');
-        emailLink.textContent = item.email || 'N/A'; // Teks yang ditampilkan di hyperlink
-        emailLink.href = `/owner/${item.email || ''}`; 
+            // Membuat elemen <a> untuk email
+            const emailLink = document.createElement('a');
+            emailLink.textContent = item.email || 'N/A'; // Teks yang ditampilkan di hyperlink
+            emailLink.href = `/owner/${item.email || ''}`; 
 
-        // Menambahkan elemen <a> ke dalam cell
-        emailCell.appendChild(emailLink);
+            // Menambahkan elemen <a> ke dalam cell
+            emailCell.appendChild(emailLink);
 
-        // Menambahkan cell ke row
-        row.appendChild(emailCell);
+            // Menambahkan cell ke row
+            row.appendChild(emailCell);
 
-        // Membuat cell untuk nomor urut (No)
-        const kdCell = document.createElement('td');
-        kdCell.textContent = item.kode; // Nomor urut berdasarkan index
-        row.appendChild(kdCell);
+            // Membuat cell untuk nomor urut (No)
+            const kdCell = document.createElement('td');
+            kdCell.textContent = item.kode; // Nomor urut berdasarkan index
+            row.appendChild(kdCell);
 
-        // Membuat cell untuk tanggal daftar (createdAt)
-        const createdAtCell = document.createElement('td');
-        const createdAtDate = new Date(item.createdAt); // Mengonversi ke format tanggal
-        createdAtCell.textContent = createdAtDate.toLocaleDateString('id-ID'); // Format tanggal lokal
-        row.appendChild(createdAtCell);
+            // Membuat cell untuk tanggal daftar (createdAt)
+            const createdAtCell = document.createElement('td');
+            const createdAtDate = new Date(item.createdAt); // Mengonversi ke format tanggal
+            createdAtCell.textContent = createdAtDate.toLocaleDateString('id-ID'); // Format tanggal lokal
+            row.appendChild(createdAtCell);
 
-        const hapusCell = document.createElement('td');
-        // Menghindari undefined atau null pada item.id
-        // Membuat elemen <a> untuk tombol hapus
-        const hapusLink = document.createElement('a');
-        hapusLink.href = ''; // Tambahkan URL tujuan jika diperlukan
-        hapusLink.textContent = 'Hapus';
-        hapusLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            const confirmed = confirm(`Apakah Anda yakin ingin menghapus owner "${item.email}"?`);
-            if (confirmed) {
+            const hapusCell = document.createElement('td');
+            // Menghindari undefined atau null pada item.id
+            // Membuat elemen <a> untuk tombol hapus
+            const hapusLink = document.createElement('a');
+            hapusLink.href = ''; // Tambahkan URL tujuan jika diperlukan
+            hapusLink.textContent = 'Hapus';
+            hapusLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                const confirmed = confirm(`Apakah Anda yakin ingin menghapus owner "${item.email}"?`);
+                if (confirmed) {
 
-                fetch(`/api/owners/${item.id}/${item.email}`, { method: 'DELETE' })
-                    .then(response => {
-                        if (response.ok) {
-                            console.log(`Owner ${item.email} berhasil dihapus.`);
-                        } else {
-                            console.error(`Gagal menghapus owner ${item.email}.`);
-                        }
-                    })
-                    .catch(err => console.error('Terjadi kesalahan:', err));
-            }
-        });
-        // Menambahkan link hapus ke dalam cell
-        hapusCell.appendChild(hapusLink);
-        // Menambahkan cell ke dalam row
-        row.appendChild(hapusCell);
+                    fetch(`/api/owners/${item.id}/${item.email}`, { method: 'DELETE' })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log(`Owner ${item.email} berhasil dihapus.`);
+                            } else {
+                                console.error(`Gagal menghapus owner ${item.email}.`);
+                            }
+                        })
+                        .catch(err => console.error('Terjadi kesalahan:', err));
+                }
+            });
+            // Menambahkan link hapus ke dalam cell
+            hapusCell.appendChild(hapusLink);
+            // Menambahkan cell ke dalam row
+            row.appendChild(hapusCell);
 
-        // Menambahkan row ke dalam tabel
-        tableBody.appendChild(row); // Menambahkan row ke tbody
+            // Menambahkan row ke dalam tabel
+            tableBody.appendChild(row); // Menambahkan row ke tbody
+          }
+        }else{
+          const row = document.createElement('tr'); // Membuat row baru
+
+          // Membuat cell untuk nomor urut (No)
+          const noCell = document.createElement('td');
+          noCell.textContent = index + 1; // Nomor urut berdasarkan index
+          row.appendChild(noCell);
+
+          // Membuat cell untuk email
+          const emailCell = document.createElement('td');
+
+          // Membuat elemen <a> untuk email
+          const emailLink = document.createElement('a');
+          emailLink.textContent = item.email || 'N/A'; // Teks yang ditampilkan di hyperlink
+          emailLink.href = `/owner/${item.email || ''}`; 
+
+          // Menambahkan elemen <a> ke dalam cell
+          emailCell.appendChild(emailLink);
+
+          // Menambahkan cell ke row
+          row.appendChild(emailCell);
+
+          // Membuat cell untuk nomor urut (No)
+          const kdCell = document.createElement('td');
+          kdCell.textContent = item.kode; // Nomor urut berdasarkan index
+          row.appendChild(kdCell);
+
+          // Membuat cell untuk tanggal daftar (createdAt)
+          const createdAtCell = document.createElement('td');
+          const createdAtDate = new Date(item.createdAt); // Mengonversi ke format tanggal
+          createdAtCell.textContent = createdAtDate.toLocaleDateString('id-ID'); // Format tanggal lokal
+          row.appendChild(createdAtCell);
+
+          const hapusCell = document.createElement('td');
+          // Menghindari undefined atau null pada item.id
+          // Membuat elemen <a> untuk tombol hapus
+          const hapusLink = document.createElement('a');
+          hapusLink.href = ''; // Tambahkan URL tujuan jika diperlukan
+          hapusLink.textContent = 'Hapus';
+          hapusLink.addEventListener('click', (event) => {
+              event.preventDefault();
+              const confirmed = confirm(`Apakah Anda yakin ingin menghapus owner "${item.email}"?`);
+              if (confirmed) {
+
+                  fetch(`/api/owners/${item.id}/${item.email}`, { method: 'DELETE' })
+                      .then(response => {
+                          if (response.ok) {
+                              console.log(`Owner ${item.email} berhasil dihapus.`);
+                          } else {
+                              console.error(`Gagal menghapus owner ${item.email}.`);
+                          }
+                      })
+                      .catch(err => console.error('Terjadi kesalahan:', err));
+              }
+          });
+          // Menambahkan link hapus ke dalam cell
+          hapusCell.appendChild(hapusLink);
+          // Menambahkan cell ke dalam row
+          row.appendChild(hapusCell);
+
+          // Menambahkan row ke dalam tabel
+          tableBody.appendChild(row); 
+        }
       });
     });
 
@@ -280,6 +360,6 @@
         window.location.href = '/';
       }
     });
-  </script>
+  </script>	
 </body>
 </html>

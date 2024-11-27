@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
 import http from 'https';
 import { Server } from 'socket.io';
+const path = require('path');
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -51,9 +52,9 @@ function isAuthenticated(req, res, next) {
   if (req.session.userId) {
     next();
   } else {
-    res.status(401).json({ message: 'Unauthorized' });
+    res.redirect('/');
   }
-}
+} 
 
 async function ambilDataOwner() {
   try {
@@ -105,22 +106,81 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
   }
 });
+ 
+let versi = '1.0.5';
+// Endpoint untuk mengembalikan informasi plugin
+app.get('/update-check', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.json({
+      new_version: versi,
+      download_url: `https://${req.headers.host}/download/bebii-lite-digital-pro.zip`,
+      requires: '5.0', // Minimum WordPress version
+      tested: '6.0'    // Maximum WordPress version tested
+  });
+});
 
+app.get('/plugin-info', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.json({
+      name: 'bebii lite digital pro',
+      slug: 'bebii-lite-digital-pro',
+      version: versi,
+      author: 'Your Name',
+      author_profile: 'https://example.com',
+      homepage: 'https://example.com',
+      download_url: `https://${req.headers.host}/download/bebii-lite-digital-pro.zip`,
+      requires: '5.0',
+      tested: '6.0',
+      description: 'Plugin Bebii Lebih ngegass.',
+      changelog: 'ubah inputan gambar jadi url.',
+  });
+});
+
+// Endpoint untuk mengunduh file plugin
+app.get('/download/:filename', (req, res) => {
+  const fileName = req.params.filename; // Nama file dari parameter URL
+  const filePath = path.join(__dirname, 'downloads', fileName); // Lokasi file di server
+
+  res.download(filePath, fileName, (err) => {
+      if (err) {
+          console.error('Error downloading file:', err.message);
+          res.status(404).json({ error: 'File not found' });
+      }
+  });
+});
+ 
 app.get('/dashboard', isAuthenticated, (req, res) => {
   res.sendFile(__dirname + '/public/dashboard.html');
+});
+
+app.get('/ganti_kode', isAuthenticated, (req, res) => {
+  res.sendFile(__dirname + '/public/ganti_kode.html');
 });
 
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-
-    const user = await prisma.$queryRaw`SELECT * FROM User WHERE email = ${email} AND role = 'admin'`;
+ 
+    const user = await prisma.$queryRaw`SELECT * FROM User WHERE email = ${email}`;
     let dat_user = user[0];
 
-    if (dat_user && (await bcrypt.compare(password, dat_user.password))) {
-      req.session.userId = dat_user.id;
-      res.json({ success: true });
+    if (dat_user) {
+      if(dat_user.role == 'admin'){
+        if(await bcrypt.compare(password, dat_user.password)){
+          req.session.userId = dat_user.id;
+          res.json({ success: true });
+        }else{
+          res.status(401).json({ success: false, message: 'Invalid email or password' });
+        }
+      }else{
+        if(dat_user.kode == password){
+          req.session.userId = dat_user.id;
+          res.json({ success: true });
+        }else{
+          res.status(401).json({ success: false, message: 'Invalid email or password' });
+        } 
+      }
     } else {
       res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
@@ -160,19 +220,21 @@ app.delete('/api/owners/:id/:email', async (req, res) => {
   const { id, email } = req.params;
 
   try {
-      const owner = await prisma.User.delete({
-          where: { id: parseInt(id) },
-      });
+    const result = await prisma.$queryRaw`
+    DELETE FROM \`User\` 
+    WHERE \`id\` = ${parseInt(id)}
+    `;
+    
+    dataOwner = await ambilDataOwner();
+    io.emit('dataOwner', dataOwner);
 
-      dataOwner = await ambilDataOwner();
-      io.emit('dataOwner', dataOwner);
+    io.emit('logout', email);
+    console.log(email); 
 
-      io.emit('logout', email);
-      console.log(email);
-
-      res.json({ message: `Owner dengan ID ${id} berhasil dihapus.`, owner });
-  } catch (error) {
-      res.status(500).json({ error: 'Gagal menghapus owner. Pastikan ID valid.' });
+    res.json({ message: `Owner dengan ID ${id} berhasil dihapus.`, owner });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ success: false, message: 'User already exists' });
   }
 });
 
@@ -251,6 +313,26 @@ app.post('/api/register-admin', async (req, res) => {
   }
 });
 
+app.post('/api/ganti-lisensi', async (req, res) => {
+  const { email_input, kode } = req.body;
+
+  try {
+    const result = await prisma.$queryRaw`
+    UPDATE \`User\`
+    SET \`kode\` = ${kode}
+    WHERE \`email\` = ${email_input}
+    `;
+
+    dataOwner = await ambilDataOwner();
+    io.emit('dataOwner', dataOwner);
+
+    res.redirect('/dashboard');
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ success: false, message: 'User already exists' });
+  }
+});
+
 app.post('/api/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -263,15 +345,16 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/dashboard', isAuthenticated, async (req, res) => {
   try {
-    const user = await prisma.User.findUnique({
-      where: { id: req.session.userId },
-    });
+    const user = await prisma.$queryRaw`
+      SELECT * FROM User WHERE id = ${req.session.userId}
+    `;
+    let data_user = user[0];
 
-    if (!user) {
+    if (!data_user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json({ email: user.email });
+    res.json({ email: data_user.email, role: data_user.role });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Internal server error' });

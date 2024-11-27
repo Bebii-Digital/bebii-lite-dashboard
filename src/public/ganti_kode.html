@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register Admin</title>
+    <title>Ganti Kode Lisensi</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
       *, *::before, *::after, body, html {
         margin: 0;
@@ -51,22 +52,27 @@
       border-radius: 10px;
       border: 1px solid rgba( 255, 255, 255, 0.18 );
       padding: 20px 45px;
-      " method="POST" action="/api/register-admin">
-    <h1>Register Admin</h1>
+      " method="POST" action="/api/ganti-lisensi">
+    <h1>Ganti Kode Lisensi</h1>
     <hr style="margin: 20px 0;">
     <div style="display: flex; flex-direction: column;">
-      <label for="email">Email</label>
-      <input class="bebii-input" type="text" name="email" placeholder="email" required />
-    </div>
-    <br>
-    <div style="display: flex; flex-direction: column;">
-      <label for="password">Password</label>
-      <input class="bebii-input" type="password" name="password" placeholder="Kode Lisensi" required />
+      <label for="kode">Kode Lisensi Baru</label>
+      <input type="hidden" name="email_input" id="email_input">
+      <input class="bebii-input" type="text" name="kode" placeholder="kode lisensi" required />
     </div>
     <div style="display: flex;justify-content: space-between;align-items: center;padding-top: 30px;">
       <a style="background-color: #e45e5e;color: white;" class="bebii-btn" href="/dashboard">Dashboard</a>
-      <button style="padding: 12px;" class="bebii-btn" type="submit">Register</button>
+      <button style="padding: 12px;" class="bebii-btn" type="submit">Ganti</button>
     </div>
   </form>
 </body>
 </html>
+
+<script>
+  fetch('/api/dashboard')
+      .then((res) => res.json())
+      .then((data) => {
+        email = data.email;
+        document.getElementById("email_input").value = email;
+      });
+</script>
