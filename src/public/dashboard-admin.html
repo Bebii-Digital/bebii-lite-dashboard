@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard User</title>
+  <title>Dashboard Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.6/dayjs.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
@@ -74,16 +74,17 @@
 <body>
   <section style="width: 100%;display: flex;justify-content: space-between;align-items: center;margin-bottom: 10px;">
     <div>
-      <h1>Welcome to the Dashboard User</h1>
+      <h1>Welcome to the Dashboard</h1>
       <p id="email"></p>
     </div>
     <div style="display: flex;gap: 20px;flex-direction: column;">
       <button class="bebii-btn" id="logout">Logout</button>
-      <a class="bebii-btn" href="/ganti_kode">Ganti Kode</a>
+      <a class="bebii-btn" href="/ganti_password">Ganti Password</a>
     </div>
   </section>
 
   <section class="bebii-container">
+    
     <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;margin-top: 20px;">
       <div style="display: flex;width: 100%;justify-content: space-between;align-items: center;">
         <h3>User</h3>
@@ -105,21 +106,38 @@
       </div>
     </div>
 
-    <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;margin-top: 20px;">
+    <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;margin-top: 20px;" id="kontain-adm">
       <div style="display: flex;width: 100%;justify-content: space-between;align-items: center;">
-        <h3>Domain</h3>
-        <form id="registerDomain" style="display: flex;gap: 15px;">
-          <input class="bebii-input" type="text" id="domain" name="domain" placeholder="Domain Web" required />
-          <button class="bebii-btn" type="submit">Tambah</button>
-        </form>
+        <h3>Admin</h3>
+        <a class="bebii-btn" href="/register-admin.html">Register Admin</a>
       </div>
       <div style="overflow-x: scroll;">
-        <table class="greyGridTable" id="dataTableDomain" border="1">
+        <table class="greyGridTable" id="dataTableAdmin" border="1">
           <thead>
             <tr>
               <th>No.</th>
-              <th>Domain</th>
+              <th>Email</th>
               <th>Tanggal Gabung</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="padding: 0 10px;border: 1px solid #000;overflow-x: hidden;margin-top: 20px;">
+      <div style="display: flex;width: 100%;justify-content: space-between;align-items: center;">
+        <h3>All Domain</h3>
+      </div>
+      <div style="overflow-x: scroll;">
+        <table class="greyGridTable" id="dataTableAllDomain" border="1">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Email</th>
+              <th>Domain</th>
+              <th>Tanggal Input</th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -292,15 +310,14 @@
     socket.on('dataWeb', (data) => {
         console.log(data);
           
-          const tableBody = document.querySelector('#dataTableDomain tbody');
+          const tableBody = document.querySelector('#dataTableAllDomain tbody');
           tableBody.innerHTML = ''; // Clear table before inserting new data
     
           // Looping data dan menambahkannya ke tabel
           let i = 0;
           data.forEach((item, index) => {
 
-            if(item.email == email){
-              i += 1;
+            i += 1;
 
               const row = document.createElement('tr'); // Membuat row baru
     
@@ -308,6 +325,10 @@
               const noCell = document.createElement('td');
               noCell.textContent = i; // Nomor urut berdasarkan index
               row.appendChild(noCell);
+
+              const emailCell = document.createElement('td');
+              emailCell.textContent = item.email; // Nomor urut berdasarkan index
+              row.appendChild(emailCell);
       
               // Membuat cell untuk web
               const webCell = document.createElement('td');
@@ -358,39 +379,76 @@
       
               // Menambahkan row ke dalam tabel
               tableBody.appendChild(row); // Menambahkan row ke tbody
-            }
 
           });
         });
 
-        document.getElementById('registerDomain').addEventListener('submit', async (event) => {
-            event.preventDefault(); // Mencegah form submit secara default
+    socket.on('dataAdmin', (data) => {
+      console.log(data);
+      
+      const tableBody = document.querySelector('#dataTableAdmin tbody');
+      tableBody.innerHTML = ''; // Clear table before inserting new data
 
-            const domain = document.getElementById('domain').value; // Ambil nilai dari input email
+      // Looping data dan menambahkannya ke tabel
+      data.forEach((item, index) => {
+        const row = document.createElement('tr'); // Membuat row baru
 
-            try {
-                const urlParams = window.location.pathname.split('/');
-                
-                const response = await fetch('/api/register-domain', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json', // Menentukan format data yang dikirim adalah JSON
-                },
-                body: JSON.stringify({ email, domain }), // Mengirim data dalam format JSON
-                });
+        // Membuat cell untuk nomor urut (No)
+        const noCell = document.createElement('td');
+        noCell.textContent = index + 1; // Nomor urut berdasarkan index
+        row.appendChild(noCell);
 
-                const result = await response.json(); // Parsing response dari server
+        // Membuat cell untuk email
+        const emailCell = document.createElement('td');
 
-                if (response.ok) {
-                alert('Owner berhasil ditambahkan!');
-                document.getElementById('registerDomain').reset(); // Mengosongkan form setelah berhasil
-                } else {
-                alert(result.message || 'Gagal menambahkan owner.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
+        // Membuat elemen <a> untuk email
+        const emailLink = document.createElement('a');
+        emailLink.textContent = item.email || 'N/A'; // Teks yang ditampilkan di hyperlink
+        emailLink.href = ``; 
+
+        // Menambahkan elemen <a> ke dalam cell
+        emailCell.appendChild(emailLink);
+
+        // Menambahkan cell ke row
+        row.appendChild(emailCell);
+
+        // Membuat cell untuk tanggal daftar (createdAt)
+        const createdAtCell = document.createElement('td');
+        const createdAtDate = new Date(item.createdAt); // Mengonversi ke format tanggal
+        createdAtCell.textContent = createdAtDate.toLocaleDateString('id-ID'); // Format tanggal lokal
+        row.appendChild(createdAtCell);
+
+        const hapusCell = document.createElement('td');
+        // Menghindari undefined atau null pada item.id
+        // Membuat elemen <a> untuk tombol hapus
+        const hapusLink = document.createElement('a');
+        hapusLink.href = ''; // Tambahkan URL tujuan jika diperlukan
+        hapusLink.textContent = 'Hapus';
+        hapusLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            const confirmed = confirm(`Apakah Anda yakin ingin menghapus owner "${item.email}"?`);
+            if (confirmed) {
+
+                fetch(`/api/admins/${item.id}/${item.email}`, { method: 'DELETE' })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log(`Owner ${item.email} berhasil dihapus.`);
+                        } else {
+                            console.error(`Gagal menghapus admin ${item.email}.`);
+                        }
+                    })
+                    .catch(err => console.error('Terjadi kesalahan:', err));
             }
         });
+        // Menambahkan link hapus ke dalam cell
+        hapusCell.appendChild(hapusLink);
+        // Menambahkan cell ke dalam row
+        row.appendChild(hapusCell);
+
+        // Menambahkan row ke dalam tabel
+        tableBody.appendChild(row); // Menambahkan row ke tbody
+      });
+    });
 
     document.getElementById('logout').addEventListener('click', async () => {
       const response = await axios.post('/api/logout');

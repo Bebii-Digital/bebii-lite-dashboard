@@ -106,8 +106,8 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
   }
 });
- 
-let versi = '1.0.5';
+
+let versi = '1.1.6'; 
 // Endpoint untuk mengembalikan informasi plugin
 app.get('/update-check', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
@@ -132,7 +132,7 @@ app.get('/plugin-info', (req, res) => {
       requires: '5.0',
       tested: '6.0',
       description: 'Plugin Bebii Lebih ngegass.',
-      changelog: 'ubah inputan gambar jadi url.',
+      changelog: 'update organik mode, fix bug custom html, update Experimental AFS',
   });
 });
 
@@ -153,8 +153,16 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
   res.sendFile(__dirname + '/public/dashboard.html');
 });
 
+app.get('/dashboard-admin', isAuthenticated, (req, res) => {
+  res.sendFile(__dirname + '/public/dashboard-admin.html');
+});
+ 
 app.get('/ganti_kode', isAuthenticated, (req, res) => {
   res.sendFile(__dirname + '/public/ganti_kode.html');
+});
+
+app.get('/ganti_password', isAuthenticated, (req, res) => {
+  res.sendFile(__dirname + '/public/ganti_password.html');
 });
 
 app.post('/api/login', async (req, res) => {
@@ -169,18 +177,18 @@ app.post('/api/login', async (req, res) => {
       if(dat_user.role == 'admin'){
         if(await bcrypt.compare(password, dat_user.password)){
           req.session.userId = dat_user.id;
-          res.json({ success: true });
+          res.json({ success: true, role: 'admin' });
         }else{
           res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
       }else{
         if(dat_user.kode == password){
           req.session.userId = dat_user.id;
-          res.json({ success: true });
+          res.json({ success: true, role: 'user' });
         }else{
           res.status(401).json({ success: false, message: 'Invalid email or password' });
         } 
-      }
+      } 
     } else {
       res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
@@ -444,7 +452,7 @@ io.on('connection', (socket) => {
   socket.emit('dataOwner', dataOwner);
   socket.emit('dataAdmin', dataAdmin);
   socket.emit('dataWeb', dataWeb);
-
+   
   socket.on('disconnect', () => {
     console.log('A user disconnected');
     jumlahUser -= 1;
